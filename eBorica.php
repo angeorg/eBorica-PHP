@@ -22,7 +22,7 @@ interface eBoricaActions
 /**
  * eBorica Payments PHP class
  *
- * @version 0.1.0-dev
+ * @version 0.1.1-dev
  * @copyright Anton Georgiev (https://github.com/angeorg/eBorica-PHP)
  * @author Anton Georgiev
  * 
@@ -31,7 +31,7 @@ class eBorica implements eBoricaActions
 {
   // Set the default options that won't be changed often
   protected $default_options = array(
-    'borica_url' => 'https://gatet.borica.bg/boreps/',
+    'borica_url' => 'https://gate.borica.bg/boreps/',
     'private_key' => '/path/to/private_key.key',
     'private_key_pass' => '',
     'certificate' => '/path/to/certificate.cer',
@@ -148,12 +148,46 @@ class eBorica implements eBoricaActions
   /**
    * Get the transaction info
    *
-   * @param string $transaction_id Set transaction's unique id
+   * @param string $transaction_id Transaction unique id
    * @return string
    */
   public function get_transaction_info($transaction_id)
   {
     $this->transaction_info_request($transaction_id);
+    $request = $this->generate_request();
+    $response = $this->get_response($request);
+    return $this->read_response($response);
+  }
+
+  /**
+   * Set the details for the transaction that will be canceled
+   *
+   * @param string $transaction_id Transaction id
+   * @param integer $amount Amount
+   * @param string $description Transaction description
+   * @return void
+   */
+  public function set_cancel_transaction_info($transaction_id, $amount, $description)
+  {
+    $this->action = 'manageTransaction';
+    $this->transaction_code = 40;
+    $this->transaction_id = $transaction_id;
+    $this->description = $description;
+    $this->amount = $amount * 100;
+  }
+
+  /**
+   * Cancel transaction (Reversal)
+   *
+   * @param string $transaction_id Transaction id
+   * @param integer $amount Amount
+   * @param string $description Transaction description
+   * @return string
+   */
+  public function cancel_transaction($transaction_id, $amount,
+      $description = 'Cancel transaction')
+  {
+    $this->set_cancel_transaction_info($transaction_id, $amount, $description);
     $request = $this->generate_request();
     $response = $this->get_response($request);
     return $this->read_response($response);
@@ -252,7 +286,7 @@ class eBorica implements eBoricaActions
     $request = urlencode(base64_encode($request));
     $this->check_request_for_errors();
     return $this->options['borica_url'] . $this->action
-    . '?eBorica=' . $request;
+      . '?eBorica=' . $request;
   }
 
   /**
