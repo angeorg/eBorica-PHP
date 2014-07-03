@@ -1,7 +1,7 @@
 <?php
 require 'eBorica.php';
 
-$eBorica = new eBorica;
+$eBorica = new eBorica();
 
 $amount = 111;
 $transaction_id = uniqid(true);
